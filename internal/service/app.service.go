@@ -11,22 +11,24 @@ import (
 	"go.opentelemetry.io/otel/codes"
 )
 
-type weatherService struct {
-	apiKey string
+type appService struct {
+	httpClient *http.Client
+	host       string
 }
 
-func NewWeatherService(apiKey string) IWeatherService {
-	return &weatherService{
-		apiKey: apiKey,
+func NewAppService(httpClient *http.Client, host string) IAppService {
+	return &appService{
+		httpClient: httpClient,
+		host:       host,
 	}
 }
 
-func (s *weatherService) GetWeatherByZipCode(ctx context.Context, zipcode string) (*model.WeatherResult, error) {
+func (s *appService) GetWeather(ctx context.Context, zipcode string) (*model.AppResult, error) {
 	tracer := otel.GetTracer()
-	ctx, span := tracer.Start(ctx, "get-weather-by-zipcode")
+	ctx, span := tracer.Start(ctx, "get-weather")
 	defer span.End()
 
-	url := fmt.Sprintf("http://api.weatherapi.com/v1/current.json?key=%s&q=%s", s.apiKey, zipcode)
+	url := fmt.Sprintf("%s/weather/%s/zipcode", s.host, zipcode)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -34,7 +36,7 @@ func (s *weatherService) GetWeatherByZipCode(ctx context.Context, zipcode string
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := s.httpClient.Do(req)
 	if err != nil {
 		span.SetStatus(codes.Error, "Failure")
 		return nil, fmt.Errorf("error making request: %w", err)
@@ -46,12 +48,12 @@ func (s *weatherService) GetWeatherByZipCode(ctx context.Context, zipcode string
 		return nil, fmt.Errorf("error response from server: %s", res.Status)
 	}
 
-	weatherResult := &model.WeatherResult{}
-	if err := json.NewDecoder(res.Body).Decode(weatherResult); err != nil {
+	result := &model.AppResult{}
+	if err := json.NewDecoder(res.Body).Decode(result); err != nil {
 		span.SetStatus(codes.Error, "Failure")
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
 
 	span.SetStatus(codes.Ok, "Success")
-	return weatherResult, nil
+	return result, nil
 }

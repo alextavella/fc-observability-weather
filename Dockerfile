@@ -6,8 +6,9 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o main cmd/a/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o main cmd/api/main.go
 
 EXPOSE 8080
+EXPOSE 8081
 
 CMD ["/app/main"]

@@ -3,19 +3,18 @@ package handler
 import (
 	"fmt"
 
-	"github.com/alextavella/fc-observability-weather/internal/config"
 	"github.com/alextavella/fc-observability-weather/internal/service"
 	"github.com/alextavella/fc-observability-weather/pkg/otel"
 	"github.com/gofiber/fiber/v3"
 )
 
 type zipcodeHandler struct {
-	weatherService service.IWeatherService
+	appService service.IAppService
 }
 
-func NewZipcodeHandler(cfg *config.Config) *zipcodeHandler {
+func NewZipcodeHandler(appService service.IAppService) *zipcodeHandler {
 	return &zipcodeHandler{
-		weatherService: service.NewWeatherService(cfg.APP_B_HOST),
+		appService: appService,
 	}
 }
 func (h *zipcodeHandler) RegisterRoutes(app *fiber.App) {
@@ -54,16 +53,12 @@ func (h *zipcodeHandler) HandleZipCodeRequest(c fiber.Ctx) error {
 	}
 
 	// Call the weather service
-	weatherResp, err := h.weatherService.GetWeatherByZipCode(ctx, input.Zipcode)
+	weatherResp, err := h.appService.GetWeather(ctx, input.Zipcode)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
 
-	fmt.Println("Weather response:", weatherResp)
-
-	return c.JSON(fiber.Map{
-		"cep": input.Zipcode,
-	})
+	return c.JSON(weatherResp)
 }

@@ -1,5 +1,0 @@
-PORT=8081
-APP_NAME="my-app-b"
-OTEL_HOST="http://localhost:4317"
-APP_A_HOST="http://localhost:8080"
-APP_B_HOST="http://localhost:8081"

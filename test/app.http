@@ -1,0 +1,13 @@
+### service-a
+POST http://localhost:8080/zipcode
+Content-Type: application/json
+
+{
+  "cep": "09861160"
+}
+
+### service-b
+GET http://localhost:8081/weather/09861160/zipcode
+
+### weather api
+GET http://api.weatherapi.com/v1/current.json?key=c09c558d1bd74620910182708250705&q=09861160

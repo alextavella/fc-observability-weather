@@ -1,2 +1,7 @@
-### health
-GET http://localhost:8080/health
+### /zipcode
+POST http://localhost:8080/zipcode
+Content-Type: application/json
+
+{
+  "cep": "09861160"
+}

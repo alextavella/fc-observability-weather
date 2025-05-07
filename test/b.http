@@ -1,2 +1,2 @@
-### health
-GET http://localhost:8081/health
+### weather
+GET http://localhost:8081/weather/09861160/zipcode

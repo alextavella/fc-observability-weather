@@ -8,30 +8,31 @@ import (
 	"os/signal"
 	"syscall"
 
-	otel "github.com/alextavella/go-opentelemetry/pkg/otel"
+	"github.com/alextavella/fc-observability-weather/internal/config"
+	"github.com/alextavella/fc-observability-weather/internal/handler"
+	"github.com/alextavella/fc-observability-weather/pkg/otel"
 	"github.com/gofiber/fiber/v3"
 )
 
 func main() {
 	ctx := context.Background()
-
-	name := os.Getenv("APP_NAME")
-	fmt.Println("APP_NAME:", name)
-	if name == "" {
-		name = "weather-app"
+	cfg, err := config.NewConfig("build", ".env.a")
+	if err != nil {
+		log.Fatalf("Erro ao carregar configuração: %v", err)
 	}
 
 	//  OpenTelemetry configuration
-	otelShutdown, err := otel.SetupOtel(ctx, name)
+	otelShutdown, err := otel.SetupOtel(ctx, cfg.OTEL_HOST, cfg.APP_NAME)
 	if err != nil {
 		log.Fatalf("Erro ao configurar OpenTelemetry: %v", err)
 	}
 
 	// HTTP Server
 	app := fiber.New()
-	app.Get("/health", func(c fiber.Ctx) error {
-		return c.SendString("OK")
-	})
+
+	// Handlers
+	weatherHandler := handler.NewWeatherHandler()
+	weatherHandler.RegisterRoutes(app)
 
 	// Shutdown
 	sigCh := make(chan os.Signal, 1)
@@ -50,6 +51,6 @@ func main() {
 	}()
 
 	// Start server
-	log.Println("Servidor ouvindo em :8080")
-	log.Fatal(app.Listen(":8080"))
+	log.Println(fmt.Printf("Servidor ouvindo em :%d", cfg.PORT))
+	log.Fatal(app.Listen(fmt.Sprintf(":%d", cfg.PORT)))
 }

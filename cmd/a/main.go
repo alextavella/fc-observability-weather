@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -12,8 +13,14 @@ import (
 func main() {
 	ctx := context.Background()
 
+	name := os.Getenv("APP_NAME")
+	fmt.Println("APP_NAME:", name)
+	if name == "" {
+		name = "weather-app"
+	}
+
 	//  OpenTelemetry configuration
-	otelShutdown, err := otel.SetupOtel(ctx, "weather-app")
+	otelShutdown, err := otel.SetupOtel(ctx, name)
 	if err != nil {
 		log.Fatalf("Erro ao configurar OpenTelemetry: %v", err)
 	}

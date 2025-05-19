@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/alextavella/fc-observability-weather/internal/domain/exception"
 	"github.com/alextavella/fc-observability-weather/internal/service"
 	"github.com/alextavella/fc-observability-weather/internal/util"
 	"github.com/alextavella/fc-observability-weather/pkg/otel"
@@ -43,16 +44,16 @@ func (h *weatherHandler) HandleWeatherRequest(c fiber.Ctx) error {
 
 	viacepResult, err := h.addressService.GetAddressByZipcode(ctx, input.Zipcode)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"error": exception.ErrInvalidZipcode.Error(),
 		})
 	}
 
 	zipcode := viacepResult.Cep
 	weatherResult, err := h.weatherService.GetWeatherByZipCode(ctx, zipcode)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": exception.ErrCanNotFindZipcode.Error(),
 		})
 	}
 
